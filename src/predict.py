@@ -6,9 +6,7 @@ repository, with some modifications to make it work with the RP platform.
 
 import gc
 import threading
-from concurrent.futures import (
-    ThreadPoolExecutor,
-)  # Still needed for transcribe potentially?
+
 import numpy as np
 
 from runpod.serverless.utils import rp_cuda
@@ -25,6 +23,8 @@ AVAILABLE_MODELS = {
     "large-v1",
     "large-v2",
     "large-v3",
+    "distil-large-v2",
+    "distil-large-v3",
     "turbo",
 }
 
@@ -149,7 +149,7 @@ class Predictor:
                 initial_prompt=initial_prompt,
                 prefix=None,
                 suppress_blank=True,
-                suppress_tokens=[-1],  # Might need conversion from string
+                suppress_tokens=[int(t) for t in suppress_tokens.split(",")],
                 without_timestamps=False,
                 max_initial_timestamp=1.0,
                 word_timestamps=word_timestamps,

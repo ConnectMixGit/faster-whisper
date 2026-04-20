@@ -61,12 +61,11 @@ def run_whisper_job(job):
     if job_input.get('audio', False) and job_input.get('audio_base64', False):
         return {'error': 'Must provide either audio or audio_base64, not both'}
 
-    if job_input.get('audio', False):
-        with rp_debugger.LineTimer('download_step'):
-            audio_input = download_files_from_urls(job['id'], [job_input['audio']])[0]
-
     if job_input.get('audio_base64', False):
         audio_input = base64_to_tempfile(job_input['audio_base64'])
+    else:
+        with rp_debugger.LineTimer('download_step'):
+            audio_input = download_files_from_urls(job['id'], [job_input['audio']])[0]
 
     with rp_debugger.LineTimer('prediction_step'):
         whisper_results = MODEL.predict(
@@ -98,4 +97,7 @@ def run_whisper_job(job):
     return whisper_results
 
 
-runpod.serverless.start({"handler": run_whisper_job})
+runpod.serverless.start({
+    "handler": run_whisper_job,
+    "concurrency_modifier": lambda _: 6
+})
