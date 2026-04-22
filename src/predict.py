@@ -26,6 +26,12 @@ AVAILABLE_MODELS = {
     "distil-large-v2",
     "distil-large-v3",
     "turbo",
+    "turbo-deepdml",
+}
+
+# Models that need explicit HuggingFace repo IDs (not in faster-whisper's built-in registry)
+MODEL_REPO_MAP = {
+    "turbo-deepdml": "deepdml/faster-whisper-large-v3-turbo-ct2",
 }
 
 
@@ -94,10 +100,11 @@ class Predictor:
                     print(f"Model {existing_model_name} unloaded.")
 
                 # Load the requested model
-                print(f"Loading model: {model_name}...")
+                resolved_name = MODEL_REPO_MAP.get(model_name, model_name)
+                print(f"Loading model: {model_name} ({resolved_name})...")
                 try:
                     loaded_model = WhisperModel(
-                        model_name,
+                        resolved_name,
                         device="cuda" if rp_cuda.is_available() else "cpu",
                         compute_type="float16" if rp_cuda.is_available() else "int8",
                     )

@@ -11,6 +11,7 @@ model_names = [
     "distil-large-v2",
     "distil-large-v3",
     "turbo",
+    "deepdml/faster-whisper-large-v3-turbo-ct2",
 ]
 
 

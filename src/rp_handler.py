@@ -13,6 +13,7 @@ from runpod.serverless.utils import download_files_from_urls, rp_cleanup, rp_deb
 from runpod.serverless.utils.rp_validator import validate
 import runpod
 import predict
+from gpu_config import estimate_max_concurrency
 
 
 MODEL = predict.Predictor()
@@ -97,7 +98,9 @@ def run_whisper_job(job):
     return whisper_results
 
 
+CONCURRENCY = estimate_max_concurrency(target_model="turbo")
+
 runpod.serverless.start({
     "handler": run_whisper_job,
-    "concurrency_modifier": lambda _: 6
+    "concurrency_modifier": lambda _: CONCURRENCY
 })
