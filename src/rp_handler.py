@@ -98,9 +98,17 @@ def run_whisper_job(job):
     return whisper_results
 
 
-CONCURRENCY = estimate_max_concurrency(target_model="turbo")
+_concurrency = None
+
+
+def _concurrency_modifier(_):
+    global _concurrency
+    if _concurrency is None:
+        _concurrency = estimate_max_concurrency(target_model="turbo")
+    return _concurrency
+
 
 runpod.serverless.start({
     "handler": run_whisper_job,
-    "concurrency_modifier": lambda _: CONCURRENCY
+    "concurrency_modifier": _concurrency_modifier
 })
