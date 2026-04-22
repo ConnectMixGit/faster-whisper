@@ -57,13 +57,25 @@ def estimate_max_concurrency(target_model="turbo"):
     GPU and whisper model. Returns an integer concurrency value.
 
     This runs in <100ms with no model loading -- NVML queries only.
+    Always returns a safe default (6) if anything goes wrong.
     """
+    default = 6
+
+    try:
+        return _estimate(target_model, default)
+    except Exception as e:
+        _log(f"GPU auto-config failed ({e}), defaulting to concurrency={default}")
+        return default
+
+
+def _estimate(target_model, default):
+    """Inner estimation logic. Raises on any failure so the caller can fallback."""
     try:
         import pynvml
         pynvml.nvmlInit()
     except Exception as e:
-        _log(f"NVML init failed ({e}), defaulting to concurrency=6")
-        return 6
+        _log(f"NVML init failed ({e}), defaulting to concurrency={default}")
+        return default
 
     try:
         device_count = pynvml.nvmlDeviceGetCount()
@@ -84,8 +96,8 @@ def estimate_max_concurrency(target_model="turbo"):
 
         pynvml.nvmlShutdown()
     except Exception as e:
-        _log(f"NVML query failed ({e}), defaulting to concurrency=6")
-        return 6
+        _log(f"NVML query failed ({e}), defaulting to concurrency={default}")
+        return default
 
     model_vram = MODEL_VRAM_GB.get(target_model, 1.6)
     scratch_per_call = PER_INFERENCE_SCRATCH_GB.get(target_model, 0.35)
