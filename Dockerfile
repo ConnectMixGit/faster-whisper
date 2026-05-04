@@ -1,6 +1,6 @@
-# faster-whisper turbo needs cuDNN >= 9.4 for H100/A40/L40 compatibility
+# faster-whisper turbo needs cuDNN >= 9.1 for H100/A40/L40 compatibility
 # see https://github.com/runpod-workers/worker-faster_whisper/pull/44
-FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
 # Remove any third-party apt sources to avoid issues with expiring keys.
 RUN rm -f /etc/apt/sources.list.d/*.list
