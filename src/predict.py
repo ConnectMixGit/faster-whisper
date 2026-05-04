@@ -102,18 +102,23 @@ class Predictor:
                 # Load the requested model
                 resolved_name = MODEL_REPO_MAP.get(model_name, model_name)
                 print(f"Loading model: {model_name} ({resolved_name})...")
-                try:
-                    loaded_model = WhisperModel(
-                        resolved_name,
-                        device="cuda" if rp_cuda.is_available() else "cpu",
-                        compute_type="float16" if rp_cuda.is_available() else "int8",
-                    )
-                    self.models[model_name] = loaded_model
-                    model = loaded_model
-                    print(f"Model {model_name} loaded successfully.")
-                except Exception as e:
-                    print(f"Error loading model {model_name}: {e}")
-                    raise ValueError(f"Failed to load model {model_name}: {e}") from e
+                device = "cuda" if rp_cuda.is_available() else "cpu"
+                candidates = ["float16", "bfloat16", "int8_float16", "int8"] if device == "cuda" else ["int8"]
+                loaded_model = None
+                last_error = None
+                for ct in candidates:
+                    try:
+                        print(f"Loading model {model_name} with compute_type={ct}...")
+                        loaded_model = WhisperModel(resolved_name, device=device, compute_type=ct)
+                        print(f"Model {model_name} loaded successfully with compute_type={ct}.")
+                        break
+                    except Exception as e:
+                        print(f"compute_type={ct} failed: {e}")
+                        last_error = e
+                if loaded_model is None:
+                    raise ValueError(f"Failed to load model {model_name}: {last_error}")
+                self.models[model_name] = loaded_model
+                model = loaded_model
             else:
                 # Model already loaded
                 model = self.models[model_name]
